@@ -82,29 +82,29 @@ function! dirdiff#diff(srcA, srcB)
     let DiffBuffer = tempname()
     " We first write to that file
     " Constructs the command line
-    let cmd = s:DirDiffDiffCmd
-    let cmdarg = s:DirDiffDiffFlags
+    let diffcmd = s:DirDiffDiffCmd
+    let diffcmdarg = s:DirDiffDiffFlags
 
     " If variable is set, we ignore the case
     if (g:DirDiffIgnoreCase)
-        let cmdarg = cmdarg.' -i'
+        let diffcmdarg = diffcmdarg.' -i'
     endif
     if (g:DirDiffAddArgs != '')
-        let cmdarg = cmdarg.' '.g:DirDiffAddArgs.' '
+        let diffcmdarg = diffcmdarg.' '.g:DirDiffAddArgs.' '
     endif
     if (g:DirDiffExcludes != '')
-        let cmdarg = cmdarg.' -x"'.substitute(g:DirDiffExcludes, ',', '" -x"', 'g').'"'
+        let diffcmdarg = diffcmdarg.' -x"'.substitute(g:DirDiffExcludes, ',', '" -x"', 'g').'"'
     endif
     if (g:DirDiffIgnore != '')
-        let cmdarg = cmdarg.' -I"'.substitute(g:DirDiffIgnore, ',', '" -I"', 'g').'"'
+        let diffcmdarg = diffcmdarg.' -I"'.substitute(g:DirDiffIgnore, ',', '" -I"', 'g').'"'
     endif
     " Prompt the user for additional arguments
-    "    let addarg = input("Additional diff args (current =". cmdarg. "): ")
+    "    let addarg = input("Additional diff args (current =". diffcmdarg. "): ")
     let addarg = ''
-    let cmd .= printf('%s %s "%s" "%s" > "%s"', cmdarg, addarg, DirDiffAbsSrcA, DirDiffAbsSrcB, DiffBuffer)
+    let diffcmd .= printf('%s %s "%s" "%s" > "%s"', diffcmdarg, addarg, DirDiffAbsSrcA, DirDiffAbsSrcB, DiffBuffer)
 
     echo 'Diffing directories, it may take a while...'
-    let error = <SID>DirDiffExec(cmd, 0)
+    let error = <SID>DirDiffExec(diffcmd, 0)
     if (error == 0)
         redraw | echom 'diff found no differences - directories match.'
         return
@@ -145,7 +145,7 @@ function! dirdiff#diff(srcA, srcB)
         call append(2, "Usage:   <Enter>/'o'=open,'s'=sync,'q'=quit")
     endif
     call append(3, "Options: 'u'=update,'x'=set excludes,'i'=set ignore,'a'=set args" )
-    call append(4, 'Diff Args:' . cmdarg)
+    call append(4, 'Diff Args:' . diffcmdarg)
     call append(5, '')
     " go to the beginning of the file
     0
