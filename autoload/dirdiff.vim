@@ -534,7 +534,7 @@ function! <SID>GetFileNameFromLine(AB, line)
     if <SID>IsOnly(a:line)
         let fileToProcess = <SID>ParseOnlyFile(a:line)
     elseif <SID>IsDiffer(a:line)
-        let regex = printf('^.*%s\[A\]\(.*\)%s\[B\]\(.*\)%s.*$', s:DirDiffDifferLine, s:DirDiffDifferAndLine, s:DirDiffDifferEndLine)
+        let regex = printf('^.*%s\[A\]\(.*\)%s\[B\].*%s.*$', s:DirDiffDifferLine, s:DirDiffDifferAndLine, s:DirDiffDifferEndLine)
         let fileToProcess = substitute(a:line, regex, '\1', '')
     else
     endif
@@ -557,9 +557,8 @@ endfunction
 
 function! <SID>ParseOnlyFile(line)
     let regex = printf('^.*%s\[.\]\(.*\)%s\(.*\)', s:DirDiffDiffOnlyLine, s:DirDiffDiffOnlyLineCenter)
-    let root = substitute(a:line, regex , '\1', '')
-    let file = root . s:sep . substitute(a:line, regex , '\2', '')
-    return file
+    let [root, file] = matchlist(a:line, regex)[1:2]
+    return root . s:sep . file
 endfunction
 
 function! <SID>Copy(fileFromOrig, fileToOrig)
@@ -808,8 +807,7 @@ function! <SID>GetDiffStrings()
     "echo "tmp1: " . tmp1
     "echo "tmp1rx: " . tmp1rx
     let regex = printf('\(^.*\)%s\(.*\)test', tmp1rx)
-    let s:DirDiffDiffOnlyLine = substitute(getline(1), regex, '\1', '')
-    let s:DirDiffDiffOnlyLineCenter = substitute(getline(1), regex, '\2', '')
+    let [s:DirDiffDiffOnlyLine, s:DirDiffDiffOnlyLineCenter] = matchlist(getline(1), regex)[1:2]
     "echo "DirDiff Only: " . s:DirDiffDiffOnlyLine
 
     q
