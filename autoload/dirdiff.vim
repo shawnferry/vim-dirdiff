@@ -137,16 +137,7 @@ function! dirdiff#diff(srcA, srcB)
     silent! %s/^/    /
 
     " We then put the file [A] and [B] on top of the diff lines
-    call append(0, '[A]='. DirDiffAbsSrcA)
-    call append(1, '[B]='. DirDiffAbsSrcB)
-    if g:DirDiffEnableMappings
-        call append(2, "Usage:   <Enter>/'o'=open,'s'=sync,'<Leader>dg'=diffget,'<Leader>dp'=diffput,'<Leader>dj'=next,'<Leader>dk'=prev, 'q'=quit")
-    else
-        call append(2, "Usage:   <Enter>/'o'=open,'s'=sync,'q'=quit")
-    endif
-    call append(3, "Options: 'u'=update,'x'=set excludes,'i'=set ignore,'a'=set args" )
-    call append(4, 'Diff Args:' . diffcmdarg)
-    call append(5, '')
+    call <SID>PutHeaderToDiffBuffer(DirDiffAbsSrcA, DirDiffAbsSrcB, diffcmdarg)
     " go to the beginning of the file
     0
     setlocal nomodified
@@ -177,6 +168,19 @@ function! dirdiff#diff(srcA, srcB)
 
     " Open the first diff
     call dirdiff#next()
+endfunction
+
+function! <SID>PutHeaderToDiffBuffer(srcA, srcB, diffcmdarg)
+    call append(0, '[A]='. a:srcA)
+    call append(1, '[B]='. a:srcB)
+    if g:DirDiffEnableMappings
+        call append(2, "Usage:   <Enter>/'o'=open,'s'=sync,'<Leader>dg'=diffget,'<Leader>dp'=diffput,'<Leader>dj'=next,'<Leader>dk'=prev, 'q'=quit")
+    else
+        call append(2, "Usage:   <Enter>/'o'=open,'s'=sync,'q'=quit")
+    endif
+    call append(3, "Options: 'u'=update,'x'=set excludes,'i'=set ignore,'a'=set args" )
+    call append(4, 'Diff Args:' . a:diffcmdarg)
+    call append(5, '')
 endfunction
 
 " Set up syntax highlighing for the diff window
