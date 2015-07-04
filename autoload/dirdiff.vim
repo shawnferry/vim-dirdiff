@@ -87,16 +87,16 @@ function! dirdiff#diff(srcA, srcB)
 
     " If variable is set, we ignore the case
     if (g:DirDiffIgnoreCase)
-        let diffcmdarg = diffcmdarg.' -i'
+        let diffcmdarg .= ' -i'
     endif
     if (g:DirDiffAddArgs != '')
-        let diffcmdarg = diffcmdarg.' '.g:DirDiffAddArgs.' '
+        let diffcmdarg .= ' '.g:DirDiffAddArgs.' '
     endif
     if (g:DirDiffExcludes != '')
-        let diffcmdarg = diffcmdarg.' -x"'.substitute(g:DirDiffExcludes, ',', '" -x"', 'g').'"'
+        let diffcmdarg .= ' -x"'.substitute(g:DirDiffExcludes, ',', '" -x"', 'g').'"'
     endif
     if (g:DirDiffIgnore != '')
-        let diffcmdarg = diffcmdarg.' -I"'.substitute(g:DirDiffIgnore, ',', '" -I"', 'g').'"'
+        let diffcmdarg .= ' -I"'.substitute(g:DirDiffIgnore, ',', '" -I"', 'g').'"'
     endif
     " Prompt the user for additional arguments
     "    let addarg = input("Additional diff args (current =". diffcmdarg. "): ")
@@ -495,7 +495,7 @@ function! <SID>DirDiffSync() range
                 let silence = 1
             endif
             if (answer == 5)
-                let currLine = currLine + 1
+                let currLine += 1
                 continue
             endif
             if (answer == 6)
@@ -507,16 +507,16 @@ function! <SID>DirDiffSync() range
         let rtnCode = <SID>DirDiffSyncHelper(syncMaster, line)
         if (rtnCode == 0)
             " Successful
-            let syncCount = syncCount + 1
+            let syncCount += 1
             " Assume that the line is synchronized, we delete the entry
             setlocal modifiable
             exe (currLine.','.currLine.' delete')
             setlocal nomodifiable
             setlocal nomodified
-            let lastLine = lastLine - 1
+            let lastLine -= 1
         else
             " Failed!
-            let currLine = currLine + 1
+            let currLine += 1
         endif
     endwhile
     echo syncCount . ' diff item(s) synchronized.'
@@ -662,22 +662,13 @@ function! <SID>AreDiffWinsOpened()
     let currLine = line('.')
     wincmd k
     let abovedBuff = expand('%:p')
-    if (&diff)
-        let abovedIsDiff = 1
-    else
-        let abovedIsDiff = 0
-    endif
+    let abovedIsDiff = &diff
     " Go Back if the aboved buffer is not the same
     if (currBuff != abovedBuff)
         wincmd j
         " Go back to the same line
         exe (currLine)
-        if (abovedIsDiff == 1)
-            return 1
-        else
-            " Aboved is just a bogus buffer, not a diff buffer
-            return 0
-        endif
+        return abovedIsDiff
     else
         exe (currLine)
         return 0
@@ -739,7 +730,7 @@ func! <SID>SortR(start, end, cmp)
         let result = function(a:cmp)(str, partStr)
         if (result <= 0)
             " Need to put it before the partition.  Swap lines i and partition.
-            let partition = partition + 1
+            let partition += 1
             if (result == 0)
                 let middle = partition
             endif
@@ -749,7 +740,7 @@ func! <SID>SortR(start, end, cmp)
                 call setline(partition, str)
             endif
         endif
-        let i = i + 1
+        let i += 1
     endwhile
 
     " Now we have a pointer to the "middle" element, as far as partitioning
