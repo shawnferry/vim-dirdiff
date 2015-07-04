@@ -13,46 +13,50 @@ let s:DirDiffALine = 1
 let s:DirDiffBLine = 2
 
 " -- Variables used in various utilities
+
+let s:DirDiffDiffCmd = '!diff'
+let s:DirDiffDiffFlags = ' -r --brief'
+
 if has('unix')
-    let s:DirDiffCopyCmd = 'cp'
+    let s:DirDiffCopyCmd = '!cp'
     let s:DirDiffCopyFlags = ''
-    let s:DirDiffCopyDirCmd = 'cp'
+    let s:DirDiffCopyDirCmd = '!cp'
     let s:DirDiffCopyDirFlags = '-rf'
     let s:DirDiffCopyInteractiveFlag = '-i'
 
-    let s:DirDiffDeleteCmd = 'rm'
+    let s:DirDiffDeleteCmd = '!rm'
     let s:DirDiffDeleteFlags = ''
     let s:DirDiffDeleteInteractiveFlag = '-i'
 
-    let s:DirDiffDeleteDirCmd = 'rm'
+    let s:DirDiffDeleteDirCmd = '!rm'
     let s:DirDiffDeleteDirFlags = '-rf'
 
     let s:sep = '/'
 
-    let s:DirDiffMakeDirCmd  = '!mkdir '
+    let s:DirDiffMakeDirCmd  = '!mkdir'
 
 elseif has('win32')
-    let s:DirDiffCopyCmd = 'copy'
+    let s:DirDiffCopyCmd = '!copy'
     let s:DirDiffCopyFlags = ''
-    let s:DirDiffCopyDirCmd = 'xcopy'
+    let s:DirDiffCopyDirCmd = '!xcopy'
     let s:DirDiffCopyDirFlags = '/e /i /q'
     let s:DirDiffCopyInteractiveFlag = '/-y'
 
-    let s:DirDiffDeleteCmd = 'del'
+    let s:DirDiffDeleteCmd = '!del'
     let s:DirDiffDeleteFlags = '/s /q'
     let s:DirDiffDeleteInteractiveFlag = '/p'
     " Windows is somewhat stupid since "del" can only remove the files, not
     " the directory.  The command "rd" would remove files recursively, but it
     " doesn't really work on a file (!).  where is the deltree command???
 
-    let s:DirDiffDeleteDirCmd = 'rd'
+    let s:DirDiffDeleteDirCmd = '!rd'
     " rd is by default prompting, we need to handle this in a different way
     let s:DirDiffDeleteDirFlags = '/s'
     let s:DirDiffDeleteDirQuietFlag = '/q'
 
     let s:sep = '\'
 
-    let s:DirDiffMakeDirCmd  = '!mkdir '
+    let s:DirDiffMakeDirCmd  = '!mkdir'
 else
     " Platforms not supported
     let s:DirDiffCopyCmd = ''
@@ -78,8 +82,8 @@ function! dirdiff#diff(srcA, srcB)
     let DiffBuffer = tempname()
     " We first write to that file
     " Constructs the command line
-    let cmd = '!diff'
-    let cmdarg = ' -r --brief'
+    let cmd = s:DirDiffDiffCmd
+    let cmdarg = s:DirDiffDiffFlags
 
     " If variable is set, we ignore the case
     if (g:DirDiffIgnoreCase)
@@ -568,7 +572,7 @@ function! <SID>Copy(fileFromOrig, fileToOrig)
     endif
 
     " Constructs the copy command
-    let copycmd = '!'.s:DirDiffCopyCmd.' '.s:DirDiffCopyFlags
+    let copycmd = s:DirDiffCopyCmd.' '.s:DirDiffCopyFlags
     " Append the interactive flag
     if (g:DirDiffInteractive)
         let copycmd .= ' ' . s:DirDiffCopyInteractiveFlag
@@ -576,7 +580,7 @@ function! <SID>Copy(fileFromOrig, fileToOrig)
     let copycmd = printf('%s "%s" "%s"', copycmd, fileFrom, fileTo)
 
     " Constructs the copy directory command
-    let copydircmd = '!'.s:DirDiffCopyDirCmd.' '.s:DirDiffCopyDirFlags
+    let copydircmd = s:DirDiffCopyDirCmd.' '.s:DirDiffCopyDirFlags
     " Append the interactive flag
     if (g:DirDiffInteractive)
         let copydircmd .= ' ' . s:DirDiffCopyInteractiveFlag
@@ -625,7 +629,7 @@ function! <SID>Delete(fileFromOrig)
     let delcmd = ''
 
     if (isdirectory(fileFrom))
-        let delcmd = '!'.s:DirDiffDeleteDirCmd.' '.s:DirDiffDeleteDirFlags
+        let delcmd = s:DirDiffDeleteDirCmd.' '.s:DirDiffDeleteDirFlags
         if (g:DirDiffInteractive)
             " If running on Unix, and we're running in interactive mode, we
             " append the -i tag
@@ -640,7 +644,7 @@ function! <SID>Delete(fileFromOrig)
             endif
         endif
     else
-        let delcmd = '!'.s:DirDiffDeleteCmd.' '.s:DirDiffDeleteFlags
+        let delcmd = s:DirDiffDeleteCmd.' '.s:DirDiffDeleteFlags
         if (g:DirDiffInteractive)
             let delcmd .= ' ' . s:DirDiffDeleteInteractiveFlag
         endif
@@ -793,10 +797,10 @@ function! <SID>GetDiffStrings()
     let tmp2rx = <SID>EscapeDirForRegex(tmp2)
     let tmpdiffrx = <SID>EscapeDirForRegex(tmpdiff)
 
-    silent exe s:DirDiffMakeDirCmd . '"' . tmp1 . '"'
-    silent exe s:DirDiffMakeDirCmd . '"' . tmp2 . '"'
+    silent exe s:DirDiffMakeDirCmd . ' "' . tmp1 . '"'
+    silent exe s:DirDiffMakeDirCmd . ' "' . tmp2 . '"'
     silent exe printf('!echo test > "%s%s%s"', tmp1, s:sep, 'test')
-    silent exe printf('!diff -r --brief "%s" "%s" > "%s"', tmp1, tmp2, tmpdiff)
+    silent exe printf('%s %s "%s" "%s" > "%s"', s:DirDiffDiffCmd, s:DirDiffDiffFlags, tmp1, tmp2, tmpdiff)
 
     " Now get the result of that diff cmd
     silent exe 'split '. tmpdiff
@@ -814,7 +818,7 @@ function! <SID>GetDiffStrings()
     "echo "Getting the diff in GetDiffStrings"
 
     silent exe printf('!echo testdifferent > "%s%s%s"', tmp2, s:sep, 'test')
-    silent exe printf('!diff -r --brief "%s" "%s" > "%s"', tmp1, tmp2, tmpdiff)
+    silent exe printf('%s %s "%s" "%s" > "%s"', s:DirDiffDiffCmd, s:DirDiffDiffFlags, tmp1, tmp2, tmpdiff)
 
     silent exe 'split '. tmpdiff
     let s:DirDiffDifferLine = substitute(getline(1), tmp1rx . '.*$', '', '')
