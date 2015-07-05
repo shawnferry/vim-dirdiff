@@ -377,51 +377,35 @@ endfunction
 function! <SID>DirDiffSyncHelper(AB, line)
     let fileA = <SID>GetFileNameFromLine('A', a:line)
     let fileB = <SID>GetFileNameFromLine('B', a:line)
+    let rtnCode = 1
     if <SID>IsOnly(a:line)
         " If a:AB is "A" and the ParseOnlySrc returns "A", that means we need to
         " copy
         let fileSrc = <SID>ParseOnlySrc(a:line)
-        let operation = ''
         if (a:AB == 'A' && fileSrc == 'A')
-            let operation = 'Copy'
             " Use A, and A has source, thus copy the file from A to B
-            let fileFrom = fileA
-            let fileTo = fileB
+            let rtnCode = <SID>Copy(fileA, fileB)
         elseif (a:AB == 'A' && fileSrc == 'B')
-            let operation = 'Delete'
             " Use A, but B has source, thus delete the file from B
-            let fileFrom = fileB
-            let fileTo = fileA
+            let rtnCode = <SID>Delete(fileB)
         elseif (a:AB == 'B' && fileSrc == 'A')
-            let operation = 'Delete'
             " Use B, but the source file is A, thus removing A
-            let fileFrom = fileA
-            let fileTo = fileB
+            let rtnCode = <SID>Delete(fileA)
         elseif (a:AB == 'B' && fileSrc == 'B')
             " Use B, and B has the source file, thus copy B to A
-            let operation = 'Copy'
-            let fileFrom = fileB
-            let fileTo = fileA
+            let rtnCode = <SID>Copy(fileB, fileA)
         endif
     elseif <SID>IsDiffer(a:line)
         " Copy no matter what
-        let operation = 'Copy'
         if (a:AB == 'A')
-            let fileFrom = fileA
-            let fileTo = fileB
+            let rtnCode = <SID>Copy(fileA, fileB)
         elseif (a:AB == 'B')
-            let fileFrom = fileB
-            let fileTo = fileA
+            let rtnCode = <SID>Copy(fileB, fileA)
         endif
     else
         echo 'There is no diff here!'
         " Error
-        return 1
-    endif
-    if (operation == 'Copy')
-        let rtnCode = <SID>Copy(fileFrom, fileTo)
-    elseif (operation == 'Delete')
-        let rtnCode = <SID>Delete(fileFrom)
+        let rtnCode = 1
     endif
     return rtnCode
 endfunction
