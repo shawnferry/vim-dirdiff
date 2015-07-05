@@ -144,20 +144,7 @@ function! dirdiff#diff(srcA, srcB)
     setlocal bufhidden=hide
     setlocal nowrap
 
-    " Set up local key bindings
-    " 'n' actually messes with the search next pattern, I think using \dj and
-    " \dk is enough.  Otherwise, use j,k, and enter.
-    nnoremap <buffer> s :. call <SID>DirDiffSync()<CR>
-    vnoremap <buffer> s :call <SID>DirDiffSync()<CR>
-    nnoremap <buffer> u :call dirdiff#next()<CR>
-    nnoremap <buffer> x :call <SID>ChangeExcludes()<CR>
-    nnoremap <buffer> a :call <SID>ChangeArguments()<CR>
-    nnoremap <buffer> i :call <SID>ChangeIgnore()<CR>
-    nnoremap <buffer> q :call dirdiff#quit()<CR>
-
-    nnoremap <buffer> o             :call dirdiff#open()<CR>
-    nnoremap <buffer> <CR>          :call dirdiff#open()<CR>
-    nnoremap <buffer> <2-Leftmouse> :call dirdiff#open()<CR>
+    call <SID>SetupLocalKeyBindings()
     call <SID>SetupSyntax()
 
     " Open the first diff
@@ -175,6 +162,23 @@ function! <SID>PutHeaderToDiffBuffer(srcA, srcB, diffcmdarg)
     call append(3, "Options: 'u'=update,'x'=set excludes,'i'=set ignore,'a'=set args" )
     call append(4, 'Diff Args:' . a:diffcmdarg)
     call append(5, '')
+endfunction
+
+function! <SID>SetupLocalKeyBindings()
+    " Set up local key bindings
+    " 'n' actually messes with the search next pattern, I think using \dj and
+    " \dk is enough.  Otherwise, use j,k, and enter.
+    nnoremap <buffer> s :. call <SID>DirDiffSync()<CR>
+    vnoremap <buffer> s :call <SID>DirDiffSync()<CR>
+    nnoremap <buffer> u :call dirdiff#next()<CR>
+    nnoremap <buffer> x :call <SID>ChangeExcludes()<CR>
+    nnoremap <buffer> a :call <SID>ChangeArguments()<CR>
+    nnoremap <buffer> i :call <SID>ChangeIgnore()<CR>
+    nnoremap <buffer> q :call dirdiff#quit()<CR>
+
+    nnoremap <buffer> o             :call dirdiff#open()<CR>
+    nnoremap <buffer> <CR>          :call dirdiff#open()<CR>
+    nnoremap <buffer> <2-Leftmouse> :call dirdiff#open()<CR>
 endfunction
 
 " Set up syntax highlighing for the diff window
