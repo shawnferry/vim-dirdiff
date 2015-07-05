@@ -98,8 +98,6 @@ function! dirdiff#diff(srcA, srcB)
     if (g:DirDiffIgnore != '')
         let diffcmdarg .= ' -I"'.substitute(g:DirDiffIgnore, ',', '" -I"', 'g').'"'
     endif
-    " Prompt the user for additional arguments
-    "    let addarg = input("Additional diff args (current =". diffcmdarg. "): ")
     let addarg = ''
     let diffcmd .= printf('%s %s "%s" "%s" > "%s"', diffcmdarg, addarg, DirDiffAbsSrcA, DirDiffAbsSrcB, DiffBuffer)
 
@@ -143,16 +141,12 @@ function! dirdiff#diff(srcA, srcB)
     setlocal nomodified
     setlocal nomodifiable
     setlocal buftype=nowrite
-    "setlocal buftype=nofile
-    "setlocal bufhidden=delete
     setlocal bufhidden=hide
     setlocal nowrap
 
     " Set up local key bindings
     " 'n' actually messes with the search next pattern, I think using \dj and
     " \dk is enough.  Otherwise, use j,k, and enter.
-    "    nnoremap <buffer> n :call dirdiff#next()<CR>
-    "    nnoremap <buffer> p :call dirdiff#prev()<CR>
     nnoremap <buffer> s :. call <SID>DirDiffSync()<CR>
     vnoremap <buffer> s :call <SID>DirDiffSync()<CR>
     nnoremap <buffer> u :call dirdiff#next()<CR>
@@ -187,13 +181,10 @@ endfunction
 "function! <SID>SetupSyntax()
 function! <SID>SetupSyntax()
     if has('syntax') && exists('g:syntax_on')
-        "&& !has("syntax_items")
         syn match DirDiffSrcA               "\[A\]"
         syn match DirDiffSrcB               "\[B\]"
         syn match DirDiffUsage              "^Usage.*"
         syn match DirDiffOptions            "^Options.*"
-        " exec 'syn match DirDiffFiles              "' . s:DirDiffDifferLine .'"'
-        " exec 'syn match DirDiffOnly               "' . s:DirDiffDiffOnlyLine . '"'
         syn match DirDiffSelected           "^==>.*" contains=DirDiffSrcA,DirDiffSrcB
 
         hi def link DirDiffSrcA               Directory
@@ -271,21 +262,10 @@ function! dirdiff#open()
     let dirA = <SID>GetBaseDir('A')
     let dirB = <SID>GetBaseDir('B')
 
-
-    " Save the number of this window, to which we wish to return
-    " This is required in case there are other windows open
-    " let thisWindow = winnr()
-    "let thisWindow = winnr(buffNumber)
-
     exec 'buffer ' . buffNumber
 
     call <SID>CloseDiffWindows()
-    " Mark the current location of the line
-    "mark n
     let b:currentDiff = line('.')
-
-    " Ensure we're in the right window
-    " silent! exec thisWindow.'wincmd w'
 
     " Parse the line and see whether it's a "Only in" or "Files Differ"
     call <SID>HighlightLine()
@@ -314,11 +294,6 @@ function! dirdiff#open()
         wincmd k
         silent exec 'edit '.<SID>EscapeFileName(fileB)
 
-        " To ensure that A is on the left and B on the right, splitright must be off
-        " let saved_splitright = &splitright
-        " set nosplitright
-        " silent exec "vert diffsplit ".<SID>EscapeFileName(fileA)
-        " let &splitright = saved_splitright
         silent exec "leftabove vert diffsplit ".<SID>EscapeFileName(fileA)
 
         " Go back to the diff window
@@ -346,49 +321,38 @@ endfunction
 
 
 function! <SID>HighlightLine()
-    let savedLine = line('.')
-    exe (b:currentDiff)
-    setlocal modifiable
-    let line = getline('.')
-    if (match(line, '^    ') == 0)
-        s/^    /==> /
-    endif
-    setlocal nomodifiable
-    setlocal nomodified
-    exe (savedLine)
-    " This is necessary since the modified file would make the syntax
-    " disappear.
-    call <SID>SetupSyntax()
-    redraw
+    call <SID>ImplHighlightLine(1)
 endfunction
 
 function! <SID>DeHighlightLine()
+    call <SID>ImplHighlightLine(0)
+endfunction
+
+function! <SID>ImplHighlightLine(hl)
     let savedLine = line('.')
     exe (b:currentDiff)
     let line = getline('.')
     setlocal modifiable
-    if (match(line, '^==> ') == 0)
-        s/^==> /    /
+    if a:hl
+        silent! s/^    /==> /
+    else
+        silent! s/^==> /    /
     endif
     setlocal nomodifiable
     setlocal nomodified
     exe (savedLine)
+    if a:hl
+        call <SID>SetupSyntax()
+    endif
     redraw
 endfunction
 
 " Returns the directory for buffer "A" or "B".  You need to be in the diff
 " buffer though.
 function! <SID>GetBaseDir(diffName)
-    let currLine = line('.')
-    if (a:diffName == 'A')
-        let baseLine = s:DirDiffALine
-    else
-        let baseLine = s:DirDiffBLine
-    endif
+    let baseLine = (a:diffName == 'A') ? s:DirDiffALine : s:DirDiffBLine
     let regex = printf('\[%s\]=\(.*\)', a:diffName)
-    let line = getline(baseLine)
-    let rtn = substitute(line, regex, '\1', '')
-    return rtn
+    return substitute(getline(baseLine), regex, '\1', '')
 endfunction
 
 function! dirdiff#next()
@@ -507,7 +471,6 @@ function! <SID>DirDiffSync() range
             endif
         endif
 
-        "        call <SID>DeHighlightLine()
         let rtnCode = <SID>DirDiffSyncHelper(syncMaster, line)
         if (rtnCode == 0)
             " Successful
@@ -543,7 +506,6 @@ function! <SID>GetFileNameFromLine(AB, line)
     else
     endif
 
-    "echo "line : " . a:line. "AB = " . a:AB . " File to Process " . fileToProcess
     if (a:AB == 'A')
         return dirA . fileToProcess
     elseif (a:AB == 'B')
@@ -615,7 +577,6 @@ function! <SID>DirDiffExec(cmd, interactive)
         silent exe (a:cmd)
         let error = v:shell_error
     endif
-    "    let d = input("DirDiffExec: " . a:cmd . " " . a:interactive . " returns " . v:shell_error)
     return error
 endfunction
 
@@ -789,7 +750,6 @@ function! <SID>GetDiffStrings()
     " We need to pad the backslashes in order to make it match
     let tmp1rx = <SID>EscapeDirForRegex(tmp1)
     let tmp2rx = <SID>EscapeDirForRegex(tmp2)
-    let tmpdiffrx = <SID>EscapeDirForRegex(tmpdiff)
 
     silent exe s:DirDiffMakeDirCmd . ' "' . tmp1 . '"'
     silent exe s:DirDiffMakeDirCmd . ' "' . tmp2 . '"'
@@ -798,18 +758,12 @@ function! <SID>GetDiffStrings()
 
     " Now get the result of that diff cmd
     silent exe 'split '. tmpdiff
-    "echo "First line: " . getline(1)
-    "echo "tmp1: " . tmp1
-    "echo "tmp1rx: " . tmp1rx
     let regex = printf('\(^.*\)%s\(.*\)test', tmp1rx)
     let [s:DirDiffDiffOnlyLine, s:DirDiffDiffOnlyLineCenter] = matchlist(getline(1), regex)[1:2]
-    "echo "DirDiff Only: " . s:DirDiffDiffOnlyLine
 
     q
 
     " Now let's get the Differ string
-    "echo "Getting the diff in GetDiffStrings"
-
     silent exe printf('!echo testdifferent > "%s%s%s"', tmp2, s:sep, 'test')
     silent exe printf('%s %s "%s" "%s" > "%s"', s:DirDiffDiffCmd, s:DirDiffDiffFlags, tmp1, tmp2, tmpdiff)
 
@@ -819,20 +773,12 @@ function! <SID>GetDiffStrings()
     " separator, so we need to accomodate for both cases
     let andrx = printf('^.*%s[\\/]test\(.*\)%s[\\/]test.*$', tmp1rx, tmp2rx)
     let endrx = printf('^.*%s[\\/]test.*%s[\\/]test\(.*\)$' tmp1rx, tmp2rx)
-    "echo "andrx : " . andrx
-    "echo "endrx : " . endrx
     let s:DirDiffDifferAndLine = substitute(getline(1), andrx , '\1', '')
     let s:DirDiffDifferEndLine = substitute(getline(1), endrx, '\1', '')
-
-    "echo "s:DirDiffDifferLine = " . s:DirDiffDifferLine
-    "echo "s:DirDiffDifferAndLine = " . s:DirDiffDifferAndLine
-    "echo "s:DirDiffDifferEndLine = " . s:DirDiffDifferEndLine
 
     q
 
     " Delete tmp files
-    "echo "Deleting tmp files."
-
     call <SID>Delete(tmp1)
     call <SID>Delete(tmp2)
     call <SID>Delete(tmpdiff)
