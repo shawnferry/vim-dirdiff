@@ -261,10 +261,7 @@ function! dirdiff#open()
     " First dehighlight the last marked
     call <SID>DeHighlightLine()
 
-    let buffNumber = bufnr('%')
     let line = getline('.')
-
-    exec 'buffer ' . buffNumber
 
     call <SID>CloseDiffWindows()
     let b:currentDiff = line('.')
