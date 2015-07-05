@@ -377,7 +377,6 @@ endfunction
 function! <SID>DirDiffSyncHelper(AB, line)
     let fileA = <SID>GetFileNameFromLine('A', a:line)
     let fileB = <SID>GetFileNameFromLine('B', a:line)
-    "    echo "Helper line is ". a:line. " fileA " . fileA . " fileB " . fileB
     if <SID>IsOnly(a:line)
         " If a:AB is "A" and the ParseOnlySrc returns "A", that means we need to
         " copy
