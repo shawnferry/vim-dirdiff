@@ -9,8 +9,6 @@
 " Set some script specific variables:
 "
 let s:DirDiffFirstDiffLine = 6
-let s:DirDiffALine = 1
-let s:DirDiffBLine = 2
 
 " -- Variables used in various utilities
 
@@ -136,6 +134,9 @@ function! dirdiff#diff(srcA, srcB)
 
     " We then put the file [A] and [B] on top of the diff lines
     call <SID>PutHeaderToDiffBuffer(DirDiffAbsSrcA, DirDiffAbsSrcB, diffcmdarg)
+    let b:DirDiffDirA = DirDiffAbsSrcA
+    let b:DirDiffDirB = DirDiffAbsSrcB
+
     " go to the beginning of the file
     0
     call <SID>SetupLocalOptions()
@@ -206,9 +207,7 @@ endfunction
 
 " You should call this within the diff window
 function! dirdiff#update()
-    let dirA = <SID>GetBaseDir('A')
-    let dirB = <SID>GetBaseDir('B')
-    call dirdiff#diff(dirA, dirB)
+    call dirdiff#diff(b:DirDiffDirA, b:DirDiffDirB)
 endfun
 
 " Quit the DirDiff mode
@@ -264,10 +263,6 @@ function! dirdiff#open()
 
     let buffNumber = bufnr('%')
     let line = getline('.')
-
-    " We first parse back the [A] and [B] directories from the top of the line
-    let dirA = <SID>GetBaseDir('A')
-    let dirB = <SID>GetBaseDir('B')
 
     exec 'buffer ' . buffNumber
 
@@ -352,14 +347,6 @@ function! <SID>ImplHighlightLine(hl)
         call <SID>SetupSyntax()
     endif
     redraw
-endfunction
-
-" Returns the directory for buffer "A" or "B".  You need to be in the diff
-" buffer though.
-function! <SID>GetBaseDir(diffName)
-    let baseLine = (a:diffName == 'A') ? s:DirDiffALine : s:DirDiffBLine
-    let regex = printf('\[%s\]=\(.*\)', a:diffName)
-    return substitute(getline(baseLine), regex, '\1', '')
 endfunction
 
 function! dirdiff#next()
@@ -500,9 +487,6 @@ endfunction
 " either A or B does not exist, but the according value would be returned.
 function! <SID>GetFileNameFromLine(AB, line)
     " Determine where the source of the copy is.
-    let dirA = <SID>GetBaseDir('A')
-    let dirB = <SID>GetBaseDir('B')
-
     let fileToProcess = ''
 
     if <SID>IsOnly(a:line)
@@ -513,13 +497,7 @@ function! <SID>GetFileNameFromLine(AB, line)
     else
     endif
 
-    if (a:AB == 'A')
-        return dirA . fileToProcess
-    elseif (a:AB == 'B')
-        return dirB . fileToProcess
-    else
-        return ''
-    endif
+    return (a:AB == 'A' ? b:DirDiffDirA : b:DirDiffDirB) . fileToProcess
 endfunction
 
 "Returns the source (A or B) of the "Only" line
