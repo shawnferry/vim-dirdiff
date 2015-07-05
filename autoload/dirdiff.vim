@@ -649,12 +649,12 @@ endfunction
 
 " The given line begins with the "Only in"
 function! <SID>IsOnly(line)
-    return (match(a:line, '^ *' . s:DirDiffDiffOnlyLine . '\|^==> ' . s:DirDiffDiffOnlyLine ) == 0)
+    return (match(a:line, '^\%( *\|==> \)' . s:DirDiffDiffOnlyLine) == 0)
 endfunction
 
 " The given line begins with the "Files"
 function! <SID>IsDiffer(line)
-    return (match(a:line, '^ *' . s:DirDiffDifferLine . '\|^==> ' . s:DirDiffDifferLine  ) == 0)
+    return (match(a:line, '^\%( *\|==> \)' . s:DirDiffDifferLine) == 0)
 endfunction
 
 " Let you modify the Exclude patthern
