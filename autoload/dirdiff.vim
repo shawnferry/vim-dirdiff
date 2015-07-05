@@ -501,28 +501,22 @@ function! <SID>Copy(fileFromOrig, fileToOrig)
         return 1
     endif
 
-    " Constructs the copy command
-    let copycmd = s:DirDiffCopyCmd.' '.s:DirDiffCopyFlags
+    let copycmd = ''
+    if (isdirectory(fileFrom))
+        " Constructs the copy directory command
+        let copycmd = s:DirDiffCopyDirCmd.' '.s:DirDiffCopyDirFlags
+    else
+        " Constructs the copy command
+        let copycmd = s:DirDiffCopyCmd.' '.s:DirDiffCopyFlags
+    endif
+
     " Append the interactive flag
     if (g:DirDiffInteractive)
         let copycmd .= ' ' . s:DirDiffCopyInteractiveFlag
     endif
     let copycmd = printf('%s "%s" "%s"', copycmd, fileFrom, fileTo)
 
-    " Constructs the copy directory command
-    let copydircmd = s:DirDiffCopyDirCmd.' '.s:DirDiffCopyDirFlags
-    " Append the interactive flag
-    if (g:DirDiffInteractive)
-        let copydircmd .= ' ' . s:DirDiffCopyInteractiveFlag
-    endif
-    let copydircmd .= ' "'.fileFrom.'" "'.fileTo.'"'
-
-    let error = 0
-    if (isdirectory(fileFrom))
-        let error = <SID>DirDiffExec(copydircmd, g:DirDiffInteractive)
-    else
-        let error = <SID>DirDiffExec(copycmd, g:DirDiffInteractive)
-    endif
+    let error = <SID>DirDiffExec(copycmd, g:DirDiffInteractive)
     if (error != 0)
         echo printf("Can't copy from %s to %s", fileFrom, fileTo)
         return 1
