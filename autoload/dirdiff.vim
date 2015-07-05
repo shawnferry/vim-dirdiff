@@ -138,12 +138,7 @@ function! dirdiff#diff(srcA, srcB)
     call <SID>PutHeaderToDiffBuffer(DirDiffAbsSrcA, DirDiffAbsSrcB, diffcmdarg)
     " go to the beginning of the file
     0
-    setlocal nomodified
-    setlocal nomodifiable
-    setlocal buftype=nowrite
-    setlocal bufhidden=hide
-    setlocal nowrap
-
+    call <SID>SetupLocalOptions()
     call <SID>SetupLocalKeyBindings()
     call <SID>SetupSyntax()
 
@@ -162,6 +157,14 @@ function! <SID>PutHeaderToDiffBuffer(srcA, srcB, diffcmdarg)
     call append(3, "Options: 'u'=update,'x'=set excludes,'i'=set ignore,'a'=set args" )
     call append(4, 'Diff Args:' . a:diffcmdarg)
     call append(5, '')
+endfunction
+
+function! <SID>SetupLocalOptions()
+    setlocal nomodified
+    setlocal nomodifiable
+    setlocal buftype=nowrite
+    setlocal bufhidden=hide
+    setlocal nowrap
 endfunction
 
 function! <SID>SetupLocalKeyBindings()
