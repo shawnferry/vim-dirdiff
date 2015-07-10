@@ -96,8 +96,7 @@ function! dirdiff#diff(srcA, srcB)
     if (g:DirDiffIgnore != '')
         let diffcmdarg .= ' -I"'.substitute(g:DirDiffIgnore, ',', '" -I"', 'g').'"'
     endif
-    let addarg = ''
-    let diffcmd .= printf('%s %s "%s" "%s" > "%s"', diffcmdarg, addarg, DirDiffAbsSrcA, DirDiffAbsSrcB, DiffBuffer)
+    let diffcmd .= printf('%s "%s" "%s" > "%s"', diffcmdarg, DirDiffAbsSrcA, DirDiffAbsSrcB, DiffBuffer)
 
     echo 'Diffing directories, it may take a while...'
     let error = <SID>DirDiffExec(diffcmd, 0)
