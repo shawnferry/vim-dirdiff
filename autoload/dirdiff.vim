@@ -81,22 +81,8 @@ function! dirdiff#diff(srcA, srcB)
     " We first write to that file
     " Constructs the command line
     let diffcmd = s:DirDiffDiffCmd
-    let diffcmdarg = s:DirDiffDiffFlags
-
-    " If variable is set, we ignore the case
-    if (g:DirDiffIgnoreCase)
-        let diffcmdarg .= ' -i'
-    endif
-    if (g:DirDiffAddArgs != '')
-        let diffcmdarg .= ' '.g:DirDiffAddArgs.' '
-    endif
-    if (g:DirDiffExcludes != '')
-        let diffcmdarg .= ' -x"'.substitute(g:DirDiffExcludes, ',', '" -x"', 'g').'"'
-    endif
-    if (g:DirDiffIgnore != '')
-        let diffcmdarg .= ' -I"'.substitute(g:DirDiffIgnore, ',', '" -I"', 'g').'"'
-    endif
-    let diffcmd .= printf('%s "%s" "%s" > "%s"', diffcmdarg, DirDiffAbsSrcA, DirDiffAbsSrcB, DiffBuffer)
+    let diffcmdarg = <SID>CreateDiffCmdArgs()
+    let diffcmd .= printf('%s "%s" "%s" > "%s"', s:DirDiffDiffCmd, DirDiffAbsSrcA, DirDiffAbsSrcB, DiffBuffer)
 
     echo 'Diffing directories, it may take a while...'
     let error = <SID>DirDiffExec(diffcmd, 0)
@@ -144,6 +130,26 @@ function! dirdiff#diff(srcA, srcB)
 
     " Open the first diff
     call dirdiff#next()
+endfunction
+
+function! <SID>CreateDiffCmdArgs()
+    let diffcmdarg = s:DirDiffDiffFlags
+
+    " If variable is set, we ignore the case
+    if (g:DirDiffIgnoreCase)
+        let diffcmdarg .= ' -i'
+    endif
+    if (g:DirDiffAddArgs != '')
+        let diffcmdarg .= ' '.g:DirDiffAddArgs.' '
+    endif
+    if (g:DirDiffExcludes != '')
+        let diffcmdarg .= ' -x"'.substitute(g:DirDiffExcludes, ',', '" -x"', 'g').'"'
+    endif
+    if (g:DirDiffIgnore != '')
+        let diffcmdarg .= ' -I"'.substitute(g:DirDiffIgnore, ',', '" -I"', 'g').'"'
+    endif
+
+    return diffcmdarg
 endfunction
 
 function! <SID>PutHeaderToDiffBuffer(srcA, srcB, diffcmdarg)
