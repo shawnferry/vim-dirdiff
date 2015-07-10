@@ -80,9 +80,8 @@ function! dirdiff#diff(srcA, srcB)
     let DiffBuffer = tempname()
     " We first write to that file
     " Constructs the command line
-    let diffcmd = s:DirDiffDiffCmd
     let diffcmdarg = <SID>CreateDiffCmdArgs()
-    let diffcmd .= printf('%s "%s" "%s" > "%s"', s:DirDiffDiffCmd, DirDiffAbsSrcA, DirDiffAbsSrcB, DiffBuffer)
+    let diffcmd = printf('%s %s "%s" "%s" > "%s"', s:DirDiffDiffCmd, diffcmdarg, DirDiffAbsSrcA, DirDiffAbsSrcB, DiffBuffer)
 
     echo 'Diffing directories, it may take a while...'
     let error = <SID>DirDiffExec(diffcmd, 0)
