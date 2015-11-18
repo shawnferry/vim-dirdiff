@@ -40,11 +40,20 @@ endif
 " For DirDiffExcludes and DirDiffIgnore, separate different patterns with a
 " ',' (comma and no space!).
 "
-" eg. in your .vimrc file: let g:DirDiffExcludes = "CVS,*.class,*.o"
+" eg. in your .vimrc file: 
+"                          let g:DirDiffCmd = "diff"
+"                          let g:DirDiffExcludes = "CVS,*.class,*.o"
 "                          let g:DirDiffIgnore = "Id:"
 "                          " ignore white space in diff
 "                          let g:DirDiffAddArgs = "-w" 
 "
+" Set the diff command, default to diff
+if !exists("g:DirDiffCmd")
+    let g:DirDiffCmd = "diff"
+endif
+if !executable(g:DirDiffCmd)
+  echoerr "g:DirDiffCmd ->" . g:DirDiffCmd . "<- Diff command not found"
+endif
 " You can set the pattern that diff excludes.  Defaults to the CVS directory
 if !exists("g:DirDiffExcludes")
     let g:DirDiffExcludes = ""
@@ -159,6 +168,12 @@ endif
 
 
 function! <SID>DirDiff(srcA, srcB)
+    if !executable(g:DirDiffCmd)
+      echoerr "Cannot DirDiff without a valid/executable diff command in g:DirDiffCmd"
+      echom "let g:DirDiffCmd = <diff> in your .vimrc"
+      return
+    endif
+
     " Setup
     let DirDiffAbsSrcA = fnamemodify(expand(a:srcA, ":p"), ":p")
     let DirDiffAbsSrcB = fnamemodify(expand(a:srcB, ":p"), ":p")
@@ -173,7 +188,7 @@ function! <SID>DirDiff(srcA, srcB)
     let DiffBuffer = tempname()
     " We first write to that file
     " Constructs the command line
-    let cmd = "!diff"
+    let cmd = "!".g:DirDiffCmd
     let cmdarg = " -r --brief"
 
     " If variable is set, we ignore the case
